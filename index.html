@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="ClinicDesk Lite" />
 <meta name="theme-color" content="#185FA5" />
-<title>ClinicDesk Lite</title>
+<title>ClinicDesk v3</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -192,6 +192,33 @@
     .cal-cell { min-height: 72px; padding: 5px; }
     .appt-chip { display: none; }
   }
+
+  /* ── Voice dictation ── */
+  .voice-bar { display: flex; align-items: center; gap: 10px; background: var(--blue-light); border: 0.5px solid var(--blue-mid); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; }
+  .mic-btn { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; transition: all 0.15s; }
+  .mic-btn.idle { background: var(--blue); color: #fff; }
+  .mic-btn.idle:hover { background: var(--blue-dark); }
+  .mic-btn.listening { background: #e53e3e; color: #fff; animation: pulse-mic 1.2s ease-in-out infinite; }
+  .mic-btn.processing { background: var(--amber-text); color: #fff; }
+  @keyframes pulse-mic { 0%,100%{box-shadow:0 0 0 0 rgba(229,62,62,0.4)} 50%{box-shadow:0 0 0 8px rgba(229,62,62,0)} }
+  .voice-status { flex: 1; font-size: 13px; color: var(--blue); font-weight: 500; }
+  .voice-status.dim { color: var(--text-3); font-weight: 400; }
+  .voice-transcript { font-size: 12px; color: var(--text-2); margin-top: 3px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .voice-filled { font-size: 12px; color: var(--green-text); background: var(--green-light); border-radius: 6px; padding: 6px 10px; margin-top: 8px; }
+
+  /* ── Voice dictation ── */
+  .voice-bar { display: flex; align-items: center; gap: 10px; background: var(--blue-light); border: 0.5px solid var(--blue-mid); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; }
+  .mic-btn { width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; transition: all 0.15s; }
+  .mic-btn.idle { background: var(--blue); color: #fff; }
+  .mic-btn.idle:hover { background: var(--blue-dark); }
+  .mic-btn.listening { background: #e53e3e; color: #fff; animation: pulse-mic 1.2s ease-in-out infinite; }
+  .mic-btn.processing { background: var(--amber-text); color: #fff; pointer-events: none; }
+  @keyframes pulse-mic { 0%,100%{box-shadow:0 0 0 0 rgba(229,62,62,0.4)} 50%{box-shadow:0 0 0 9px rgba(229,62,62,0)} }
+  .voice-status { flex: 1; font-size: 13px; color: var(--blue); font-weight: 600; }
+  .voice-status.dim { color: var(--text-3); font-weight: 400; }
+  .voice-transcript { font-size: 12px; color: var(--text-2); margin-top: 3px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; }
+  .voice-filled { font-size: 12px; color: var(--green-text); background: var(--green-light); border-radius: 6px; padding: 6px 10px; margin-top: 8px; line-height: 1.5; }
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -207,7 +234,7 @@ const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_U
     <div class="logo">
       <div class="logo-mark">
         <div class="logo-icon"><i class="ti ti-stethoscope"></i></div>
-        <div class="logo-text"><div class="logo-title">ClinicDesk Lite</div><div class="logo-sub">Appointments + follow-ups</div></div>
+        <div class="logo-text"><div class="logo-title">ClinicDesk Lite</div><div class="logo-sub">v3</div></div>
       </div>
     </div>
     <nav class="nav">
@@ -427,7 +454,7 @@ function openApptModal(prefillDate, apptId){
   const apptPatient=a?patientById(a.patientId):null;
   const patientQuery=apptPatient?(apptPatient.name || apptPatient.id):'';
   const inferredType=a?(a.apptType||'Follow-up'):'';
-  document.getElementById('modal-container').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-title"><i class="ti ti-calendar-plus"></i> ${a?'Edit':'New'} appointment</div><input type="hidden" id="m-appt-type" value="${esc(inferredType)}"><input type="hidden" id="m-selected-patient-id" value="${esc(apptPatient?apptPatient.id:'')}"><div class="form-3col"><div class="form-row"><label>Date</label><input type="date" id="m-date" value="${dateVal}"></div><div class="form-row"><label>Time</label><input type="time" id="m-time" value="${esc(a?a.time:'09:00')}"></div><div class="form-row"><label>Status</label>${modalStatusSelect(a?a.status:'Booked')}</div></div><div class="form-row"><label>Patient ID / name / phone</label><input id="m-patient-query" autocomplete="off" placeholder="Type patient ID, name or phone…" value="${esc(patientQuery)}" oninput="updateApptPatientMatch()" onfocus="updateApptPatientMatch()"><div id="m-patient-results" class="patient-results"></div><div class="hint">Search accepts ID, name, or phone. Results show patient name first, with ID and phone underneath.</div></div><div id="m-patient-match" class="match-box"></div><div id="m-unmatched-decision" class="match-box" style="display:none"><div class="match-new" style="margin-bottom:8px">No match in this app yet. What is this appointment?</div><div class="type-toggle"><button type="button" id="type-new" class="type-option" onclick="setUnmatchedAppointmentType('New Patient')"><i class="ti ti-user-plus"></i> New patient</button><button type="button" id="type-follow" class="type-option" onclick="setUnmatchedAppointmentType('Follow-up')"><i class="ti ti-calendar-heart"></i> Follow-up, old patient not in app</button></div><input type="hidden" id="m-new-pid"><div class="form-2col"><div class="form-row"><label>Patient name optional</label><input id="m-new-name" placeholder="Can be filled later"></div><div class="form-row"><label>Phone optional</label><input id="m-new-phone" placeholder="Phone number"></div></div><div class="hint">The ID you typed above will be used as the Patient ID.</div></div><div class="form-row"><label>Short note</label><textarea id="m-note" placeholder="Optional appointment note…">${esc(a?a.note:'')}</textarea></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveAppt('${apptId||''}')"><i class="ti ti-check"></i> Save</button></div></div></div>`;
+  document.getElementById('modal-container').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-title"><i class="ti ti-calendar-plus"></i> ${a?'Edit':'New'} appointment</div>${voiceBarHTML("appt")}<input type="hidden" id="m-appt-type" value="${esc(inferredType)}"><input type="hidden" id="m-selected-patient-id" value="${esc(apptPatient?apptPatient.id:'')}"><div class="form-3col"><div class="form-row"><label>Date</label><input type="date" id="m-date" value="${dateVal}"></div><div class="form-row"><label>Time</label><input type="time" id="m-time" value="${esc(a?a.time:'09:00')}"></div><div class="form-row"><label>Status</label>${modalStatusSelect(a?a.status:'Booked')}</div></div><div class="form-row"><label>Patient ID / name / phone</label><input id="m-patient-query" autocomplete="off" placeholder="Type patient ID, name or phone…" value="${esc(patientQuery)}" oninput="updateApptPatientMatch()" onfocus="updateApptPatientMatch()"><div id="m-patient-results" class="patient-results"></div><div class="hint">Search accepts ID, name, or phone. Results show patient name first, with ID and phone underneath.</div></div><div id="m-patient-match" class="match-box"></div><div id="m-unmatched-decision" class="match-box" style="display:none"><div class="match-new" style="margin-bottom:8px">No match in this app yet. What is this appointment?</div><div class="type-toggle"><button type="button" id="type-new" class="type-option" onclick="setUnmatchedAppointmentType('New Patient')"><i class="ti ti-user-plus"></i> New patient</button><button type="button" id="type-follow" class="type-option" onclick="setUnmatchedAppointmentType('Follow-up')"><i class="ti ti-calendar-heart"></i> Follow-up, old patient not in app</button></div><input type="hidden" id="m-new-pid"><div class="form-2col"><div class="form-row"><label>Patient name optional</label><input id="m-new-name" placeholder="Can be filled later"></div><div class="form-row"><label>Phone optional</label><input id="m-new-phone" placeholder="Phone number"></div></div><div class="hint">The ID you typed above will be used as the Patient ID.</div></div><div class="form-row"><label>Short note</label><textarea id="m-note" placeholder="Optional appointment note…">${esc(a?a.note:'')}</textarea></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveAppt('${apptId||''}')"><i class="ti ti-check"></i> Save</button></div></div></div>`;
   updateApptPatientMatch();
 }
 function setUnmatchedAppointmentType(type){
@@ -550,7 +577,7 @@ function deleteAppt(id){ if(!confirm('Remove this appointment?')) return; state.
 function openPatientModal(pid){
   const p=pid?state.patients.find(x=>x.id===pid):null; const visits=p?(p.visits||[]):[];
   const visitHtml=p?'<div class="form-row"><label>Visit entries</label>'+(visits.length?visits.slice().reverse().map(v=>'<div class="visit-box"><div class="visit-head"><div class="visit-title">'+dateLabel(v.date)+' '+(v.followUpDate?'<span class="badge badge-purple">FU '+dateLabel(v.followUpDate)+'</span>':'')+'</div><button class="edit-btn" onclick="openVisitModal(\''+p.id+'\',\''+v.id+'\')"><i class="ti ti-edit"></i> Edit</button></div><div class="visit-body">'+esc(v.notes||'')+(v.prescription?'\n\nPrescription: '+esc(v.prescription):'')+'</div></div>').join(''):'<div class="empty">No visit entries yet</div>')+'<button class="btn" onclick="openVisitModal(\''+p.id+'\')"><i class="ti ti-plus"></i> Add visit entry</button></div>':'';
-  document.getElementById('modal-container').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal wide"><div class="modal-title"><i class="ti ti-'+(p?'user-edit':'user-plus')+'"></i> '+(p?'Edit patient':'New patient')+'</div><div class="form-row"><label>Patient ID</label><input id="p-id" value="'+esc(p?p.id:genId('P'))+'" '+(p?'readonly':'')+' oninput="checkPatientIdDuplicate(\''+(pid||'')+'\')"><div id="p-id-warning" class="warning" style="display:none">This patient already exists.</div></div><div class="form-row"><label>Full name *</label><input id="p-name" placeholder="Patient name" value="'+esc(p?p.name:'')+'"></div><div class="form-2col"><div class="form-row"><label>Age</label><input id="p-age" type="number" min="0" max="150" value="'+esc(p?p.age:'')+'"></div><div class="form-row"><label>Phone</label><input id="p-phone" placeholder="Phone number" value="'+esc(p?(p.phone||p.contact||''):'')+'"></div></div><div class="form-row"><label>General notes</label><textarea class="big-notes" id="p-notes" placeholder="Large Apple Pencil-friendly notes area…">'+esc(p?p.notes:'')+'</textarea></div>'+visitHtml+'<div class="modal-actions">'+(p?'<button class="btn btn-danger" onclick="deletePatient(\''+p.id+'\')"><i class="ti ti-trash"></i> Delete</button>':'')+'<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePatient(\''+(pid||'')+'\')"><i class="ti ti-check"></i> Save</button></div></div></div>';
+  document.getElementById('modal-container').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal wide"><div class="modal-title"><i class="ti ti-'+(p?'user-edit':'user-plus')+'"></i> '+(p?'Edit patient':'New patient')+'</div>'+voiceBarHTML('patient')+'<div class="form-row"><label>Patient ID</label><input id="p-id" value="'+esc(p?p.id:genId('P'))+'" '+(p?'readonly':'')+' oninput="checkPatientIdDuplicate(\''+(pid||'')+'\')"><div id="p-id-warning" class="warning" style="display:none">This patient already exists.</div></div><div class="form-row"><label>Full name *</label><input id="p-name" placeholder="Patient name" value="'+esc(p?p.name:'')+'"></div><div class="form-2col"><div class="form-row"><label>Age</label><input id="p-age" type="number" min="0" max="150" value="'+esc(p?p.age:'')+'"></div><div class="form-row"><label>Phone</label><input id="p-phone" placeholder="Phone number" value="'+esc(p?(p.phone||p.contact||''):'')+'"></div></div><div class="form-row"><label>General notes</label><textarea class="big-notes" id="p-notes" placeholder="Large Apple Pencil-friendly notes area…">'+esc(p?p.notes:'')+'</textarea></div>'+visitHtml+'<div class="modal-actions">'+(p?'<button class="btn btn-danger" onclick="deletePatient(\''+p.id+'\')"><i class="ti ti-trash"></i> Delete</button>':'')+'<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePatient(\''+(pid||'')+'\')"><i class="ti ti-check"></i> Save</button></div></div></div>';
 }
 function checkPatientIdDuplicate(currentPid){
   const el=document.getElementById('p-id'), warn=document.getElementById('p-id-warning');
@@ -572,7 +599,7 @@ function savePatient(pid){
 function deletePatient(pid){ if(!confirm('Delete this patient and all their appointments?')) return; state.patients=state.patients.filter(p=>p.id!==pid); state.appointments=state.appointments.filter(a=>a.patientId!==pid); save(); closeModal(); render(); }
 function openVisitModal(pid,vid){
   const p=state.patients.find(x=>x.id===pid); if(!p) return; const v=vid?(p.visits||[]).find(x=>x.id===vid):null;
-  document.getElementById('modal-container').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal wide"><div class="modal-title"><i class="ti ti-notes"></i> Visit entry — '+esc(p.name)+'</div><div class="form-2col"><div class="form-row"><label>Visit date</label><input type="date" id="v-date" value="'+esc(v?v.date:toDateStr(new Date()))+'"></div><div class="form-row"><label>Follow-up date</label><input type="date" id="v-follow" value="'+esc(v?v.followUpDate:'')+'"></div></div><div class="form-row"><label>Consultation notes</label><textarea class="big-notes" id="v-notes" placeholder="Write with Apple Pencil here…">'+esc(v?v.notes:'')+'</textarea></div><div class="form-row"><label>Prescription</label><textarea id="v-rx" placeholder="Prescription / advice…">'+esc(v?v.prescription:'')+'</textarea></div><div class="modal-actions">'+(v?'<button class="btn btn-danger" onclick="deleteVisit(\''+pid+'\',\''+vid+'\')"><i class="ti ti-trash"></i> Delete</button>':'')+'<button class="btn" onclick="openPatientModal(\''+pid+'\')">Back</button><button class="btn btn-primary" onclick="saveVisit(\''+pid+'\',\''+(vid||'')+'\')"><i class="ti ti-check"></i> Save visit</button></div></div></div>';
+  document.getElementById('modal-container').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal wide"><div class="modal-title"><i class="ti ti-notes"></i> Visit entry — '+esc(p.name)+'</div>'+voiceBarHTML('visit')+'<div class="form-2col"><div class="form-row"><label>Visit date</label><input type="date" id="v-date" value="'+esc(v?v.date:toDateStr(new Date()))+'"></div><div class="form-row"><label>Follow-up date</label><input type="date" id="v-follow" value="'+esc(v?v.followUpDate:'')+'"></div></div><div class="form-row"><label>Consultation notes</label><textarea class="big-notes" id="v-notes" placeholder="Write with Apple Pencil here…">'+esc(v?v.notes:'')+'</textarea></div><div class="form-row"><label>Prescription</label><textarea id="v-rx" placeholder="Prescription / advice…">'+esc(v?v.prescription:'')+'</textarea></div><div class="modal-actions">'+(v?'<button class="btn btn-danger" onclick="deleteVisit(\''+pid+'\',\''+vid+'\')"><i class="ti ti-trash"></i> Delete</button>':'')+'<button class="btn" onclick="openPatientModal(\''+pid+'\')">Back</button><button class="btn btn-primary" onclick="saveVisit(\''+pid+'\',\''+(vid||'')+'\')"><i class="ti ti-check"></i> Save visit</button></div></div></div>';
 }
 function saveVisit(pid,vid){ const p=state.patients.find(x=>x.id===pid); if(!p.visits) p.visits=[]; const data={date:document.getElementById('v-date').value, followUpDate:document.getElementById('v-follow').value, notes:document.getElementById('v-notes').value, prescription:document.getElementById('v-rx').value}; if(vid){ const i=p.visits.findIndex(v=>v.id===vid); p.visits[i]={...p.visits[i],...data}; } else p.visits.push({id:genId('V'),...data}); save(); openPatientModal(pid); }
 function deleteVisit(pid,vid){ const p=state.patients.find(x=>x.id===pid); if(!confirm('Delete this visit entry?')) return; p.visits=(p.visits||[]).filter(v=>v.id!==vid); save(); openPatientModal(pid); }
@@ -586,6 +613,176 @@ function closeModal(){ document.getElementById('modal-container').innerHTML=''; 
 updateBadges();
 render();
 loadFromCloud();
+
+
+
+
+// ── Voice dictation ────────────────────────────────────────────────
+const GEMINI_PROXY = 'https://flekzzvvrozxwdqxsixd.supabase.co/functions/v1/ask-gemini';
+const SUPABASE_ANON = 'sb_publishable_W051xVL3lo5ZoSwf0jyxow_1u-y9aCz';
+
+let voiceRecognition = null;
+let currentVoiceContext = null;
+
+function voiceBarHTML(context) {
+  return `<div class="voice-bar" id="voice-bar-${context}">
+    <button class="mic-btn idle" id="voice-mic-${context}" onclick="startVoice('${context}')" title="Tap and speak">
+      <i class="ti ti-microphone"></i>
+    </button>
+    <div style="flex:1;min-width:0">
+      <div class="voice-status dim" id="voice-status-${context}">Tap mic · speak · fields fill automatically</div>
+      <div class="voice-transcript" id="voice-sub-${context}"></div>
+    </div>
+  </div>`;
+}
+
+function startVoice(context) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Speech recognition not supported. Use Chrome.');
+    return;
+  }
+
+  // Stop any existing session
+  if (voiceRecognition) { voiceRecognition.stop(); voiceRecognition = null; }
+
+  currentVoiceContext = context;
+  const btn = document.getElementById('voice-mic-' + context);
+  const status = document.getElementById('voice-status-' + context);
+  const sub = document.getElementById('voice-sub-' + context);
+
+  const r = new SpeechRecognition();
+  r.continuous = false;
+  r.interimResults = true;
+  r.lang = 'en-IN';
+  voiceRecognition = r;
+
+  btn.className = 'mic-btn listening';
+  btn.innerHTML = '<i class="ti ti-player-stop-filled"></i>';
+  btn.onclick = () => { if (voiceRecognition) voiceRecognition.stop(); };
+  status.className = 'voice-status';
+  status.textContent = 'Listening… tap to stop';
+  sub.textContent = '';
+
+  let final = '';
+
+  r.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+      else interim = e.results[i][0].transcript;
+    }
+    sub.textContent = final || interim;
+  };
+
+  r.onerror = (e) => {
+    voiceRecognition = null;
+    btn.className = 'mic-btn idle';
+    btn.innerHTML = '<i class="ti ti-microphone"></i>';
+    btn.onclick = () => startVoice(context);
+    status.className = 'voice-status dim';
+    status.textContent = 'Tap mic · speak · fields fill automatically';
+    if (e.error !== 'no-speech') alert('Mic error: ' + e.error + '. Make sure you allowed microphone access.');
+  };
+
+  r.onend = () => {
+    voiceRecognition = null;
+    if (!final.trim()) {
+      btn.className = 'mic-btn idle';
+      btn.innerHTML = '<i class="ti ti-microphone"></i>';
+      btn.onclick = () => startVoice(context);
+      status.className = 'voice-status dim';
+      status.textContent = 'Tap mic · speak · fields fill automatically';
+      return;
+    }
+    processWithGemini(final.trim(), context);
+  };
+
+  r.start();
+}
+
+async function processWithGemini(transcript, context) {
+  const btn = document.getElementById('voice-mic-' + context);
+  const status = document.getElementById('voice-status-' + context);
+  const sub = document.getElementById('voice-sub-' + context);
+
+  btn.className = 'mic-btn processing';
+  btn.innerHTML = '<i class="ti ti-loader-2"></i>';
+  status.textContent = 'Understanding…';
+  sub.textContent = transcript;
+
+  try {
+    const resp = await fetch(GEMINI_PROXY, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_ANON,
+      },
+      body: JSON.stringify({ prompt: transcript, context }),
+    });
+
+    const raw = await resp.text();
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    applyVoiceData(parsed, context);
+
+    // Show filled summary
+    const barEl = document.getElementById('voice-bar-' + context);
+    let filledEl = document.getElementById('voice-filled-' + context);
+    if (!filledEl) {
+      filledEl = document.createElement('div');
+      filledEl.id = 'voice-filled-' + context;
+      filledEl.className = 'voice-filled';
+      barEl.appendChild(filledEl);
+    }
+    const summary = Object.entries(parsed).map(([k,v]) => '<strong>' + k.replace(/_/g,' ') + ':</strong> ' + v).join(' &nbsp;·&nbsp; ');
+    filledEl.innerHTML = '✓ &nbsp;' + summary;
+
+    status.textContent = 'Done! Review and save.';
+    status.className = 'voice-status';
+    sub.textContent = '';
+  } catch(e) {
+    status.textContent = 'Could not understand — please try again';
+    status.className = 'voice-status dim';
+    sub.textContent = '';
+    console.error('Voice error:', e);
+  }
+
+  btn.className = 'mic-btn idle';
+  btn.innerHTML = '<i class="ti ti-microphone"></i>';
+  btn.onclick = () => startVoice(context);
+}
+
+function applyVoiceData(data, context) {
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val !== undefined && val !== null && String(val).trim()) {
+      el.value = String(val).trim();
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  };
+  if (context === 'appt') {
+    set('m-date', data.date);
+    set('m-time', data.time);
+    set('m-note', data.note);
+    if (data.status) set('m-status', data.status);
+    if (data.patient_query) { set('m-patient-query', data.patient_query); updateApptPatientMatch(); }
+  } else if (context === 'patient') {
+    set('p-id', data.id);
+    set('p-name', data.name);
+    set('p-age', data.age);
+    set('p-phone', data.phone);
+    set('p-notes', data.notes);
+  } else if (context === 'visit') {
+    set('v-date', data.date);
+    set('v-follow', data.follow_up_date);
+    set('v-notes', data.notes);
+    set('v-rx', data.prescription);
+  }
+}
+// ── End voice ───────────────────────────────────────────────────────
+
 </script>
 </body>
 </html>
