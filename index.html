@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="ClinicDesk Lite" />
+<meta name="theme-color" content="#185FA5" />
+<title>ClinicDesk Lite</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --surface-soft: #fbfbf9;
+    --border: rgba(0,0,0,0.10);
+    --border-md: rgba(0,0,0,0.18);
+    --text: #1a1a1a;
+    --text-2: #666;
+    --text-3: #999;
+    --blue: #185FA5;
+    --blue-light: #e6f1fb;
+    --blue-mid: #B5D4F4;
+    --blue-dark: #0C447C;
+    --green-light: #eaf3de;
+    --green-text: #27500A;
+    --amber-light: #faeeda;
+    --amber-text: #633806;
+    --red: #A32D2D;
+    --red-light: #fcebeb;
+    --purple-light: #eee7fb;
+    --purple-text: #51368a;
+    --radius: 11px;
+    --radius-lg: 16px;
+    --font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110; --surface: #1c1c1b; --surface-soft: #171716;
+      --border: rgba(255,255,255,0.10); --border-md: rgba(255,255,255,0.20);
+      --text: #f0ede8; --text-2: #aaa; --text-3: #777;
+      --blue: #4a9eed; --blue-light: #0c2d4a; --blue-mid: #1a4a7a; --blue-dark: #85B7EB;
+      --green-light: #102607; --green-text: #C0DD97;
+      --amber-light: #2a1a04; --amber-text: #FAC775;
+      --red: #f09595; --red-light: #2a0a0a;
+      --purple-light: #241a36; --purple-text: #d3c5ff;
+    }
+  }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: var(--font-ui); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+  button, input, textarea, select { font: inherit; }
+  .app { display: flex; height: 100dvh; }
+  .sidebar { width: 230px; background: var(--surface); border-right: 0.5px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .logo { padding: 1.25rem 1.25rem 1rem; border-bottom: 0.5px solid var(--border); }
+  .logo-mark { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 36px; height: 36px; background: var(--blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; }
+  .logo-title { font-size: 15px; font-weight: 750; letter-spacing: -0.35px; }
+  .logo-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .nav { padding: 0.9rem 0.75rem; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; font-size: 14px; color: var(--text-2); border: none; background: none; width: 100%; text-align: left; transition: 0.14s; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--blue-light); color: var(--blue); font-weight: 600; }
+  .nav-item i { font-size: 19px; }
+  .nav-badge { margin-left: auto; background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 20px; min-width: 20px; text-align: center; }
+  .sidebar-footer { padding: 0.9rem 1.25rem; border-top: 0.5px solid var(--border); font-size: 12px; color: var(--text-3); line-height: 1.35; }
+  .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0.85rem 1.35rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+  .topbar h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.35px; }
+  .content { flex: 1; overflow-y: auto; padding: 1.25rem; -webkit-overflow-scrolling: touch; }
+  .btn, .add-btn { border-radius: var(--radius); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; transition: 0.12s; }
+  .btn { padding: 8px 14px; font-size: 13px; border: 0.5px solid var(--border-md); background: var(--surface); color: var(--text); }
+  .btn:hover { background: var(--bg); }
+  .add-btn, .btn-primary { background: var(--blue); color: #fff; border: 0.5px solid var(--blue); }
+  .add-btn { padding: 9px 15px; font-size: 13px; }
+  .add-btn:hover, .btn-primary:hover { background: var(--blue-dark); }
+  .btn-danger { color: var(--red); border-color: var(--red-light); }
+  .btn-danger:hover { background: var(--red-light); }
+  .btn-ghost { background: transparent; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.1rem; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.15rem; }
+  .stat-label { font-size: 12px; color: var(--text-3); margin-bottom: 4px; }
+  .stat-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+  .section-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .row-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface-soft); font-size: 13px; }
+  .row-main { flex: 1; min-width: 0; }
+  .row-title { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row-sub { color: var(--text-3); font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .time-pill { color: var(--blue); font-weight: 750; min-width: 54px; }
+  .badge { display: inline-flex; align-items: center; font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 650; }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-green { background: var(--green-light); color: var(--green-text); }
+  .badge-amber { background: var(--amber-light); color: var(--amber-text); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-purple { background: var(--purple-light); color: var(--purple-text); }
+  .empty { text-align: center; color: var(--text-3); font-size: 13px; padding: 2rem 1rem; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .cal-nav { display: flex; align-items: center; gap: 10px; }
+  .cal-nav-btn { background: var(--surface); border: 0.5px solid var(--border-md); border-radius: var(--radius); padding: 7px 11px; cursor: pointer; color: var(--text-2); font-size: 15px; }
+  .cal-month-label { font-size: 16px; font-weight: 700; min-width: 160px; text-align: center; letter-spacing: -0.3px; }
+  .cal-grid { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .cal-days-header, .cal-cells { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .cal-days-header { border-bottom: 0.5px solid var(--border); }
+  .cal-day-name { padding: 10px 6px; text-align: center; font-size: 11px; color: var(--text-3); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .cal-cell { border-right: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); min-height: 92px; padding: 6px 7px; cursor: pointer; transition: 0.1s; position: relative; }
+  .cal-cell:hover { background: var(--bg); }
+  .cal-cell.other-month { opacity: 0.32; pointer-events: none; }
+  .cal-cell.today .day-num { background: var(--blue); color: #fff; border-radius: 50%; font-weight: 750; }
+  .cal-cell.selected { background: var(--blue-light) !important; }
+  .day-num { font-size: 13px; font-weight: 550; margin-bottom: 4px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
+  .appt-chip { font-size: 10px; background: var(--blue-light); color: var(--blue); border-radius: 6px; padding: 2px 6px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; font-weight: 650; }
+  .appt-chip.followup { background: var(--purple-light); color: var(--purple-text); }
+  .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 13px; }
+  .type-option { border: 0.5px solid var(--border-md); background: var(--surface-soft); border-radius: var(--radius); padding: 11px 12px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .type-option.active { background: var(--blue-light); color: var(--blue); border-color: var(--blue); }
+  .appt-type-pill { min-width: 34px; text-align: center; justify-content: center; }
+  .more-chip { font-size: 10px; color: var(--text-3); padding-left: 2px; }
+  .table-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+  thead th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 750; color: var(--text-3); border-bottom: 0.5px solid var(--border); background: var(--bg); text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+  tbody td { padding: 11px 14px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  tbody tr:hover td { background: var(--bg); }
+  tbody tr:last-child td { border-bottom: none; }
+  .pid { font-family: 'SF Mono', 'Courier New', monospace; font-size: 11px; color: var(--text-3); }
+  .text-trunc { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .edit-btn { background: none; border: 0.5px solid var(--border-md); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 12px; color: var(--text-2); display: inline-flex; align-items: center; gap: 5px; }
+  .search-wrap { position: relative; }
+  .search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 16px; pointer-events: none; }
+  .search-input { padding: 9px 12px 9px 34px; border: 0.5px solid var(--border-md); border-radius: var(--radius); font-size: 13px; background: var(--bg); color: var(--text); width: 260px; outline: none; }
+  .search-input:focus { border-color: var(--blue); }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.42); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); padding: 1rem; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 1.45rem; width: 560px; max-width: 100%; border: 0.5px solid var(--border-md); max-height: 90dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .modal.wide { width: 760px; }
+  .modal-title { font-size: 16px; font-weight: 750; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 8px; }
+  .form-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 13px; }
+  .form-row label { font-size: 12px; color: var(--text-2); font-weight: 650; }
+  .form-row input, .form-row textarea, .form-row select { width: 100%; padding: 11px 12px; border: 0.5px solid var(--border-md); border-radius: var(--radius); font-size: 15px; background: var(--bg); color: var(--text); outline: none; -webkit-appearance: none; }
+  .form-row input:focus, .form-row textarea:focus, .form-row select:focus { border-color: var(--blue); }
+  .form-row textarea { resize: vertical; min-height: 150px; line-height: 1.45; }
+  .form-row textarea.big-notes { min-height: 260px; font-size: 16px; line-height: 1.55; }
+  .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap; }
+  .visit-box { border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; background: var(--surface-soft); }
+  .visit-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .visit-title { font-size: 13px; font-weight: 750; }
+  .visit-body { font-size: 13px; color: var(--text-2); line-height: 1.45; white-space: pre-wrap; }
+  .status-select { min-width: 122px; padding: 7px 30px 7px 11px; border: 1px solid transparent; border-radius: 999px; font-size: 12px; font-weight: 750; letter-spacing: -0.1px; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.04); }
+  .status-booked { background: var(--blue-light); color: var(--blue); border-color: rgba(24,95,165,.22); }
+  .status-waiting { background: var(--amber-light); color: var(--amber-text); border-color: rgba(99,56,6,.18); }
+  .status-seen { background: var(--green-light); color: var(--green-text); border-color: rgba(39,80,10,.18); }
+  .status-cancelled { background: var(--red-light); color: var(--red); border-color: rgba(163,45,45,.18); }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: 0 0 auto; }
+  .dot-booked { background: var(--blue); }
+  .dot-waiting { background: var(--amber-text); }
+  .dot-seen { background: var(--green-text); }
+  .dot-cancelled { background: var(--red); }
+  .hint { font-size: 12px; color: var(--text-3); line-height: 1.35; }
+  .warning { font-size: 12px; color: var(--red); margin-top: 6px; font-weight: 650; }
+  .match-box { border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface-soft); padding: 10px 12px; margin-top: -5px; margin-bottom: 13px; font-size: 13px; }
+  .match-ok { color: var(--green-text); font-weight: 650; }
+  .match-new { color: var(--amber-text); font-weight: 650; }
+  .patient-results { border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-top: 6px; overflow: hidden; max-height: 220px; overflow-y: auto; display: none; }
+  .patient-result { width: 100%; text-align: left; border: 0; border-bottom: 0.5px solid var(--border); background: var(--surface); color: var(--text); padding: 10px 12px; cursor: pointer; display: block; }
+  .patient-result:last-child { border-bottom: 0; }
+  .patient-result:hover { background: var(--bg); }
+  .patient-result-name { font-weight: 750; font-size: 14px; }
+  .patient-result-meta { color: var(--text-3); font-size: 12px; margin-top: 2px; }
+  .meta-label { font-weight: 700; color: var(--text-2); }
+  @media (max-width: 820px) {
+    .sidebar { width: 64px; }
+    .logo-text, .nav-item span.label, .sidebar-footer { display: none; }
+    .logo { padding: 1rem 0; display: flex; justify-content: center; }
+    .logo-mark { justify-content: center; }
+    .nav { padding: 0.75rem 0.4rem; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .nav-badge { display: none; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+    .cal-month-label { font-size: 14px; min-width: 120px; }
+    .topbar { align-items: flex-start; flex-direction: column; }
+    .search-input { width: 180px; }
+  }
+  @media (max-width: 600px) {
+    .content { padding: 0.9rem; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .form-2col, .form-3col { grid-template-columns: 1fr; }
+    .cal-cell { min-height: 72px; padding: 5px; }
+    .appt-chip { display: none; }
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://flekzzvvrozxwdqxsixd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_W051xVL3lo5ZoSwf0jyxow_1u-y9aCz";
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+</script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-icon"><i class="ti ti-stethoscope"></i></div>
+        <div class="logo-text"><div class="logo-title">ClinicDesk Lite</div><div class="logo-sub">Appointments + follow-ups</div></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="showTab('today')" id="nav-today"><i class="ti ti-sun"></i><span class="label">Today</span><span class="nav-badge" id="badge-today">0</span></button>
+      <button class="nav-item" onclick="showTab('calendar')" id="nav-calendar"><i class="ti ti-calendar"></i><span class="label">Calendar</span></button>
+      <button class="nav-item" onclick="showTab('patients')" id="nav-patients"><i class="ti ti-users"></i><span class="label">Patients</span><span class="nav-badge" id="badge-patients">0</span></button>
+      <button class="nav-item" onclick="showTab('followups')" id="nav-followups"><i class="ti ti-calendar-heart"></i><span class="label">Follow-ups</span><span class="nav-badge" id="badge-followups">0</span></button>
+      <button class="nav-item" onclick="showTab('stats')" id="nav-stats"><i class="ti ti-chart-bar"></i><span class="label">Stats</span></button>
+    </nav>
+    <div class="sidebar-footer">Cloud sync loading…</div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><h2 id="topbar-title">Today</h2><div id="topbar-actions"></div></header>
+    <section class="content" id="main-content"></section>
+  </main>
+</div>
+<div id="modal-container"></div>
+<script>
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const STATUS = ['Booked','Waiting','Seen','Cancelled'];
+const APPT_TYPES = ['New Patient','Follow-up'];
+const now = new Date();
+let cloudReady = !!supabaseClient;
+let cloudLoading = false;
+let cloudSaveTimer = null;
+let state = {
+  tab: 'today',
+  calYear: now.getFullYear(),
+  calMonth: now.getMonth(),
+  selectedDate: toDateStr(now),
+  patients: JSON.parse(localStorage.getItem('cd2_patients') || localStorage.getItem('cd_patients') || '[]'),
+  appointments: JSON.parse(localStorage.getItem('cd2_appointments') || localStorage.getItem('cd_appointments') || '[]'),
+  patientSearch: ''
+};
+state.patients = state.patients.map(p => ({ visits: [], ...p, phone: p.phone || p.contact || '' }));
+state.appointments = state.appointments.map(a => ({ status: 'Booked', apptType: 'Follow-up', ...a, ...parseStoredAppointmentNote(a.note || '') }));
+function toDateStr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dateLabel(s){ if(!s) return '—'; const d=new Date(s+'T00:00:00'); return d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}); }
+function esc(str){ return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function genId(prefix){ return prefix + Math.random().toString(36).substr(2,6).toUpperCase(); }
+function parseStoredAppointmentNote(note){
+  const raw=String(note||'');
+  const m=raw.match(/^__APPT_TYPE__:(New Patient|Follow-up)\n?/);
+  if(!m) return { apptType:'Follow-up', note:raw };
+  return { apptType:m[1], note:raw.replace(/^__APPT_TYPE__:(New Patient|Follow-up)\n?/, '') };
+}
+function packAppointmentNote(a){ return '__APPT_TYPE__:'+(a.apptType||'Follow-up')+'\n'+(a.note||''); }
+function apptTypeBadge(type){ const t=type||'Follow-up'; const cls=t==='New Patient'?'badge-blue':'badge-purple'; return '<span class="badge '+cls+' appt-type-pill">'+(t==='New Patient'?'N':'F')+'</span>'; }
+function apptTypeLabel(type){ return (type||'Follow-up')==='New Patient'?'New patient':'Follow-up'; }
+function save(){
+  localStorage.setItem('cd2_patients', JSON.stringify(state.patients));
+  localStorage.setItem('cd2_appointments', JSON.stringify(state.appointments));
+  updateBadges();
+  if(!cloudLoading) queueCloudSave();
+}
+function queueCloudSave(){
+  if(!cloudReady) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(syncToCloud, 500);
+}
+function setCloudStatus(text){
+  const el=document.querySelector('.sidebar-footer');
+  if(el) el.innerHTML=text;
+}
+function dbPatientRows(){
+  return state.patients.map(p=>({
+    id:String(p.id), name:p.name||'', age:p.age||'', phone:p.phone||p.contact||'', notes:p.notes||'', created_at:p.created_at||p.createdAt||new Date().toISOString()
+  }));
+}
+function dbAppointmentRows(){
+  return state.appointments.map(a=>({
+    id:String(a.id), patient_id:String(a.patientId||a.patient_id), date:a.date||'', time:a.time||'', note:packAppointmentNote(a), status:a.status||'Booked', created_at:a.created_at||a.createdAt||new Date().toISOString()
+  }));
+}
+function dbVisitRows(){
+  const rows=[];
+  state.patients.forEach(p=>(p.visits||[]).forEach(v=>rows.push({
+    id:String(v.id), patient_id:String(p.id), visit_date:v.date||v.visit_date||'', notes:v.notes||'', prescription:v.prescription||'', follow_up_date:v.followUpDate||v.follow_up_date||'', created_at:v.created_at||v.createdAt||new Date().toISOString()
+  })));
+  return rows;
+}
+async function loadFromCloud(){
+  if(!cloudReady){ setCloudStatus('Data saved on this browser.<br>Cloud not connected.'); return false; }
+  try{
+    cloudLoading=true; setCloudStatus('Cloud sync connected.<br>Loading data…');
+    const [pr, ar, vr] = await Promise.all([
+      supabaseClient.from('patients').select('*'),
+      supabaseClient.from('appointments').select('*'),
+      supabaseClient.from('visits').select('*')
+    ]);
+    if(pr.error || ar.error || vr.error) throw (pr.error || ar.error || vr.error);
+    const patients=(pr.data||[]).map(p=>({id:p.id,name:p.name,age:p.age||'',phone:p.phone||'',notes:p.notes||'',createdAt:p.created_at,visits:[]}));
+    const byId=Object.fromEntries(patients.map(p=>[p.id,p]));
+    (vr.data||[]).forEach(v=>{
+      if(byId[v.patient_id]) byId[v.patient_id].visits.push({id:v.id,date:v.visit_date||'',notes:v.notes||'',prescription:v.prescription||'',followUpDate:v.follow_up_date||'',createdAt:v.created_at});
+    });
+    const appointments=(ar.data||[]).map(a=>{ const parsed=parseStoredAppointmentNote(a.note||''); return {id:a.id,patientId:a.patient_id,date:a.date,time:a.time,note:parsed.note||'',apptType:parsed.apptType||'Follow-up',status:a.status||'Booked',createdAt:a.created_at}; });
+    if(patients.length || appointments.length || (vr.data||[]).length){
+      state.patients=patients; state.appointments=appointments;
+      localStorage.setItem('cd2_patients', JSON.stringify(state.patients));
+      localStorage.setItem('cd2_appointments', JSON.stringify(state.appointments));
+    } else if(state.patients.length || state.appointments.length){
+      await syncToCloud();
+    }
+    setCloudStatus('Cloud sync active.<br>iPad + PC can share data.');
+    return true;
+  }catch(err){
+    console.error('Supabase load error:', err);
+    setCloudStatus('Cloud sync error.<br>Using local browser data.');
+    return false;
+  }finally{ cloudLoading=false; updateBadges(); render(); }
+}
+async function syncToCloud(){
+  if(!cloudReady) return;
+  try{
+    setCloudStatus('Cloud sync active.<br>Saving…');
+    await supabaseClient.from('visits').delete().neq('id','__never__');
+    await supabaseClient.from('appointments').delete().neq('id','__never__');
+    await supabaseClient.from('patients').delete().neq('id','__never__');
+    const patients=dbPatientRows(), appointments=dbAppointmentRows(), visits=dbVisitRows();
+    if(patients.length){ const r=await supabaseClient.from('patients').insert(patients); if(r.error) throw r.error; }
+    if(appointments.length){ const r=await supabaseClient.from('appointments').insert(appointments); if(r.error) throw r.error; }
+    if(visits.length){ const r=await supabaseClient.from('visits').insert(visits); if(r.error) throw r.error; }
+    setCloudStatus('Cloud sync active.<br>Saved.');
+  }catch(err){
+    console.error('Supabase save error:', err);
+    setCloudStatus('Cloud sync error.<br>Local copy still saved.');
+  }
+}
+function updateBadges(){
+  const t=toDateStr(new Date());
+  document.getElementById('badge-today').textContent = state.appointments.filter(a=>a.date===t && a.status!=='Cancelled').length;
+  document.getElementById('badge-patients').textContent = state.patients.length;
+  document.getElementById('badge-followups').textContent = upcomingFollowups().length;
+}
+function showTab(tab){ state.tab=tab; document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active')); document.getElementById('nav-'+tab).classList.add('active'); render(); }
+function render(){ if(state.tab==='today') renderToday(); else if(state.tab==='calendar') renderCalendar(); else if(state.tab==='patients') renderPatients(); else if(state.tab==='followups') renderFollowups(); else renderStats(); }
+function statusClass(st){ return 'status-' + String(st || 'Booked').toLowerCase(); }
+function dotClass(st){ return 'dot-' + String(st || 'Booked').toLowerCase(); }
+function statusBadge(st){ const cls = st==='Seen'?'badge-green':st==='Waiting'?'badge-amber':st==='Cancelled'?'badge-red':'badge-blue'; return '<span class="badge '+cls+'"><span class="status-dot '+dotClass(st)+'" style="margin-right:6px"></span>'+esc(st)+'</span>'; }
+function statusSelect(id, current){ return '<select class="status-select '+statusClass(current)+'" onchange="this.className=\'status-select \'+statusClass(this.value); setApptStatus(\''+id+'\', this.value)">'+STATUS.map(s=>'<option '+(s===current?'selected':'')+'>'+s+'</option>').join('')+'</select>'; }
+function modalStatusSelect(current){ return '<select id="m-status" class="status-select '+statusClass(current)+'" onchange="this.className=\'status-select \'+statusClass(this.value)">'+STATUS.map(s=>'<option '+(s===current?'selected':'')+'>'+s+'</option>').join('')+'</select>'; }
+function patientName(id){ const p=state.patients.find(x=>x.id===id); return p ? p.name : '—'; }
+function patientById(id){ return state.patients.find(x=>x.id===id); }
+function renderActions(extra=''){
+  document.getElementById('topbar-actions').innerHTML = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+extra+'<button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button><button class="add-btn" onclick="openApptModal(null)"><i class="ti ti-plus"></i> Appointment</button></div>';
+}
+function renderToday(){
+  const today=toDateStr(new Date());
+  document.getElementById('topbar-title').textContent='Today'; renderActions('<button class="btn" onclick="openPatientModal(null)"><i class="ti ti-user-plus"></i> Patient</button>');
+  const appts=state.appointments.filter(a=>a.date===today).sort((a,b)=>a.time.localeCompare(b.time));
+  const waiting=appts.filter(a=>a.status==='Waiting').length;
+  const seen=appts.filter(a=>a.status==='Seen').length;
+  const follow=upcomingFollowups().filter(f=>f.followUpDate===today).length;
+  document.getElementById('main-content').innerHTML =
+    '<div class="grid-3">'+
+      stat('Appointments today', appts.filter(a=>a.status!=='Cancelled').length)+stat('Waiting', waiting)+stat('Seen', seen)+
+    '</div>'+
+    '<div class="grid-2">'+
+      '<div class="card"><div class="section-title"><i class="ti ti-calendar-time"></i> Today\'s patients</div>'+apptList(appts)+'</div>'+
+      '<div class="card"><div class="section-title"><i class="ti ti-calendar-heart"></i> Follow-ups today</div>'+followupList(upcomingFollowups().filter(f=>f.followUpDate===today))+'</div>'+
+    '</div>';
+}
+function stat(label,value){ return '<div class="stat-card"><div class="stat-label">'+label+'</div><div class="stat-value">'+value+'</div></div>'; }
+function apptList(appts){
+  if(!appts.length) return '<div class="empty"><i class="ti ti-calendar-off" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>No appointments</div>';
+  return '<div class="list">'+appts.map(a=>{ const p=patientById(a.patientId); return '<div class="row-card"><div class="time-pill">'+esc(a.time)+'</div>'+apptTypeBadge(a.apptType)+'<div class="row-main"><div class="row-title">'+esc(p?p.name:'—')+' <span class="pid">'+esc(p?p.id:'')+'</span></div><div class="row-sub">'+apptTypeLabel(a.apptType)+' · '+esc(p?(p.phone||p.contact||'No phone'):'')+(a.note?' · '+esc(a.note):'')+'</div></div>'+statusSelect(a.id,a.status)+'<button class="edit-btn" onclick="openApptModal(\''+a.date+'\',\''+a.id+'\')"><i class="ti ti-edit"></i></button><button class="edit-btn" onclick="deleteAppt(\''+a.id+'\')"><i class="ti ti-trash"></i></button></div>'; }).join('')+'</div>';
+}
+function renderCalendar(){
+  document.getElementById('topbar-title').textContent='Appointments'; renderActions('');
+  const today=new Date(), todayStr=toDateStr(today), year=state.calYear, month=state.calMonth;
+  const firstDay=new Date(year,month,1).getDay(), daysInMonth=new Date(year,month+1,0).getDate(), daysInPrev=new Date(year,month,0).getDate();
+  const totalCells=Math.ceil((firstDay+daysInMonth)/7)*7; let cells='';
+  for(let i=0;i<totalCells;i++){ let day,mo=month,yr=year,other=false; if(i<firstDay){day=daysInPrev-firstDay+i+1;mo=month-1;if(mo<0){mo=11;yr--;}other=true;} else if(i>=firstDay+daysInMonth){day=i-firstDay-daysInMonth+1;mo=month+1;if(mo>11){mo=0;yr++;}other=true;} else day=i-firstDay+1;
+    const dateStr=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); const appts=state.appointments.filter(a=>a.date===dateStr && a.status!=='Cancelled').sort((a,b)=>a.time.localeCompare(b.time));
+    const chips=appts.slice(0,2).map(a=>'<div class="appt-chip '+((a.apptType||'Follow-up')==='Follow-up'?'followup':'')+'">'+esc(a.time)+' '+((a.apptType||'Follow-up')==='New Patient'?'N':'F')+' '+esc(patientName(a.patientId).split(' ')[0])+'</div>').join(''); const more=appts.length>2?'<div class="more-chip">+'+(appts.length-2)+' more</div>':'';
+    cells += '<div class="cal-cell'+(other?' other-month':'')+(dateStr===todayStr?' today':'')+(dateStr===state.selectedDate?' selected':'')+'" onclick="selectDate(\''+dateStr+'\')"><div class="day-num">'+day+'</div>'+chips+more+'</div>';
+  }
+  const selected=state.appointments.filter(a=>a.date===state.selectedDate).sort((a,b)=>a.time.localeCompare(b.time));
+  document.getElementById('main-content').innerHTML = '<div class="cal-header"><div class="cal-nav"><button class="cal-nav-btn" onclick="changeMonth(-1)"><i class="ti ti-chevron-left"></i></button><span class="cal-month-label">'+MONTHS[month]+' '+year+'</span><button class="cal-nav-btn" onclick="changeMonth(1)"><i class="ti ti-chevron-right"></i></button></div><button class="btn" onclick="goToday()"><i class="ti ti-focus-2"></i> Today</button></div><div class="cal-grid"><div class="cal-days-header">'+DAYS.map(d=>'<div class="cal-day-name">'+d+'</div>').join('')+'</div><div class="cal-cells">'+cells+'</div></div><div class="card" style="margin-top:1rem"><div class="section-title"><i class="ti ti-clock"></i> Schedule — '+dateLabel(state.selectedDate)+' <button class="btn" style="margin-left:auto" onclick="openApptModal(\''+state.selectedDate+'\')"><i class="ti ti-plus"></i> Add</button></div>'+apptList(selected)+'</div>';
+}
+function selectDate(d){ state.selectedDate=d; renderCalendar(); }
+function changeMonth(dir){ state.calMonth+=dir; if(state.calMonth>11){state.calMonth=0;state.calYear++;} if(state.calMonth<0){state.calMonth=11;state.calYear--;} renderCalendar(); }
+function goToday(){ const t=new Date(); state.calYear=t.getFullYear(); state.calMonth=t.getMonth(); state.selectedDate=toDateStr(t); renderCalendar(); }
+function renderPatients(){
+  document.getElementById('topbar-title').textContent='Patient Records';
+  renderActions('<div class="search-wrap"><i class="ti ti-search"></i><input id="patient-search-input" class="search-input" placeholder="Search name, phone, patient ID…" value="'+esc(state.patientSearch)+'" oninput="handlePatientSearch(this.value)"></div><button class="btn" onclick="openPatientModal(null)"><i class="ti ti-user-plus"></i> New patient</button>');
+  document.getElementById('main-content').innerHTML = '<div class="grid-3">'+stat('Total patients',state.patients.length)+stat('New this month',patientsThisMonth())+stat('Total appointments',state.appointments.length)+'</div><div id="patient-table-container"></div>';
+  renderPatientTable();
+}
+function handlePatientSearch(value){
+  state.patientSearch=value;
+  renderPatientTable();
+}
+function renderPatientTable(){
+  const q=state.patientSearch.toLowerCase();
+  const filtered=state.patients.filter(p=>[p.name,p.id,p.phone,p.contact,p.notes].join(' ').toLowerCase().includes(q));
+  const rows=filtered.length?filtered.map(p=>{ const visits=(p.visits||[]).length; const future=nextFollowup(p); return '<tr><td><span class="pid">'+esc(p.id)+'</span></td><td><strong>'+esc(p.name)+'</strong></td><td>'+esc(p.age||'—')+'</td><td>'+esc(p.phone||p.contact||'—')+'</td><td><span class="badge badge-blue">'+visits+'</span></td><td>'+(future?'<span class="badge badge-purple">'+dateLabel(future)+'</span>':'—')+'</td><td class="text-trunc">'+esc(p.notes||'—')+'</td><td><button class="edit-btn" onclick="openPatientModal(\''+p.id+'\')"><i class="ti ti-edit"></i> Edit</button> <button class="edit-btn" onclick="openVisitModal(\''+p.id+'\')"><i class="ti ti-notes"></i> Visit</button></td></tr>'; }).join(''):'<tr><td colspan="8" class="empty">No patients found</td></tr>';
+  const el=document.getElementById('patient-table-container');
+  if(el) el.innerHTML='<div class="table-wrap"><table><thead><tr><th>Patient ID</th><th>Name</th><th>Age</th><th>Phone</th><th>Visits</th><th>Next follow-up</th><th>Notes</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function patientsThisMonth(){ const n=new Date(); return state.patients.filter(p=>{ const d=new Date(p.createdAt||0); return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear(); }).length; }
+function nextFollowup(p){ const today=toDateStr(new Date()); return (p.visits||[]).map(v=>v.followUpDate).filter(d=>d&&d>=today).sort()[0]; }
+function upcomingFollowups(){ const today=toDateStr(new Date()); let arr=[]; state.patients.forEach(p=>(p.visits||[]).forEach(v=>{ if(v.followUpDate && v.followUpDate>=today) arr.push({patient:p, visit:v, followUpDate:v.followUpDate}); })); return arr.sort((a,b)=>a.followUpDate.localeCompare(b.followUpDate)); }
+function renderFollowups(){ document.getElementById('topbar-title').textContent='Follow-ups'; renderActions(''); document.getElementById('main-content').innerHTML='<div class="card"><div class="section-title"><i class="ti ti-calendar-heart"></i> Pending follow-ups</div>'+followupList(upcomingFollowups())+'</div>'; }
+function followupList(items){ if(!items.length) return '<div class="empty">No pending follow-ups</div>'; return '<div class="list">'+items.map(f=>'<div class="row-card"><div class="time-pill">'+dateLabel(f.followUpDate)+'</div><div class="row-main"><div class="row-title">'+esc(f.patient.name)+' <span class="pid">'+esc(f.patient.id)+'</span></div><div class="row-sub">'+esc(f.patient.phone||f.patient.contact||'No phone')+(f.visit.prescription?' · Rx: '+esc(f.visit.prescription):'')+'</div></div><button class="edit-btn" onclick="openPatientModal(\''+f.patient.id+'\')"><i class="ti ti-eye"></i> View</button></div>').join('')+'</div>'; }
+function renderStats(){
+  document.getElementById('topbar-title').textContent='Stats'; renderActions('');
+  const n=new Date(), m=String(n.getMonth()+1).padStart(2,'0'), y=n.getFullYear(); const prefix=y+'-'+m;
+  const monthAppts=state.appointments.filter(a=>a.date.startsWith(prefix)); const seen=monthAppts.filter(a=>a.status==='Seen').length;
+  document.getElementById('main-content').innerHTML='<div class="grid-3">'+stat('Patients',state.patients.length)+stat('Appointments this month',monthAppts.length)+stat('Seen this month',seen)+stat('Cancelled this month',monthAppts.filter(a=>a.status==='Cancelled').length)+stat('Pending follow-ups',upcomingFollowups().length)+stat('New patients this month',patientsThisMonth())+'</div>';
+}
+function openApptModal(prefillDate, apptId){
+  const a=apptId?state.appointments.find(x=>x.id===apptId):null;
+  const dateVal=a?a.date:(prefillDate||state.selectedDate||toDateStr(new Date()));
+  const apptPatient=a?patientById(a.patientId):null;
+  const patientQuery=apptPatient?(apptPatient.name || apptPatient.id):'';
+  const inferredType=a?(a.apptType||'Follow-up'):'';
+  document.getElementById('modal-container').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-title"><i class="ti ti-calendar-plus"></i> ${a?'Edit':'New'} appointment</div><input type="hidden" id="m-appt-type" value="${esc(inferredType)}"><input type="hidden" id="m-selected-patient-id" value="${esc(apptPatient?apptPatient.id:'')}"><div class="form-3col"><div class="form-row"><label>Date</label><input type="date" id="m-date" value="${dateVal}"></div><div class="form-row"><label>Time</label><input type="time" id="m-time" value="${esc(a?a.time:'09:00')}"></div><div class="form-row"><label>Status</label>${modalStatusSelect(a?a.status:'Booked')}</div></div><div class="form-row"><label>Patient ID / name / phone</label><input id="m-patient-query" autocomplete="off" placeholder="Type patient ID, name or phone…" value="${esc(patientQuery)}" oninput="updateApptPatientMatch()" onfocus="updateApptPatientMatch()"><div id="m-patient-results" class="patient-results"></div><div class="hint">Search accepts ID, name, or phone. Results show patient name first, with ID and phone underneath.</div></div><div id="m-patient-match" class="match-box"></div><div id="m-unmatched-decision" class="match-box" style="display:none"><div class="match-new" style="margin-bottom:8px">No match in this app yet. What is this appointment?</div><div class="type-toggle"><button type="button" id="type-new" class="type-option" onclick="setUnmatchedAppointmentType('New Patient')"><i class="ti ti-user-plus"></i> New patient</button><button type="button" id="type-follow" class="type-option" onclick="setUnmatchedAppointmentType('Follow-up')"><i class="ti ti-calendar-heart"></i> Follow-up, old patient not in app</button></div><input type="hidden" id="m-new-pid"><div class="form-2col"><div class="form-row"><label>Patient name optional</label><input id="m-new-name" placeholder="Can be filled later"></div><div class="form-row"><label>Phone optional</label><input id="m-new-phone" placeholder="Phone number"></div></div><div class="hint">The ID you typed above will be used as the Patient ID.</div></div><div class="form-row"><label>Short note</label><textarea id="m-note" placeholder="Optional appointment note…">${esc(a?a.note:'')}</textarea></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveAppt('${apptId||''}')"><i class="ti ti-check"></i> Save</button></div></div></div>`;
+  updateApptPatientMatch();
+}
+function setUnmatchedAppointmentType(type){
+  const value=type==='Follow-up'?'Follow-up':'New Patient';
+  const hidden=document.getElementById('m-appt-type'); if(hidden) hidden.value=value;
+  const newBtn=document.getElementById('type-new'), followBtn=document.getElementById('type-follow');
+  if(newBtn) newBtn.classList.toggle('active', value==='New Patient');
+  if(followBtn) followBtn.classList.toggle('active', value==='Follow-up');
+}
+function syncPatientQueryFromId(){
+  const pid=document.getElementById('m-new-pid')?.value.trim() || '';
+  const q=document.getElementById('m-patient-query');
+  const existing=state.patients.find(p=>String(p.id).toLowerCase()===pid.toLowerCase());
+  const warn=document.getElementById('m-new-warning');
+  if(warn) warn.style.display=existing?'block':'none';
+  if(q && pid && cleanPatientQuery(q.value).trim()==='') q.value=pid;
+}
+function cleanPatientQuery(q){ return String(q||'').split('—')[0].trim(); }
+function patientSearchText(p){ return [p.id, p.name, p.phone, p.contact].filter(Boolean).join(' ').toLowerCase(); }
+function patientMatchesQuery(p, q){
+  q=String(q||'').trim().toLowerCase();
+  if(!q) return false;
+  return patientSearchText(p).includes(q);
+}
+function getPatientMatches(q){
+  q=cleanPatientQuery(q).toLowerCase();
+  if(!q) return [];
+  const exact=[];
+  const partial=[];
+  state.patients.forEach(p=>{
+    const id=String(p.id||'').toLowerCase();
+    const name=String(p.name||'').toLowerCase();
+    const phone=String(p.phone||p.contact||'').toLowerCase();
+    if(id===q || name===q || phone===q) exact.push(p);
+    else if(patientMatchesQuery(p,q)) partial.push(p);
+  });
+  const seen=new Set();
+  return exact.concat(partial).filter(p=>{ const key=String(p.id); if(seen.has(key)) return false; seen.add(key); return true; }).slice(0,8);
+}
+function findPatientFromQuery(q){ return getPatientMatches(q)[0] || null; }
+function selectAppointmentPatient(pid){
+  const p=state.patients.find(x=>String(x.id)===String(pid));
+  if(!p) return;
+  const input=document.getElementById('m-patient-query');
+  const results=document.getElementById('m-patient-results');
+  if(input) input.value=p.name || p.id;
+  if(results) results.style.display='none';
+  updateApptPatientMatch();
+}
+function renderPatientResults(q){
+  const box=document.getElementById('m-patient-results');
+  if(!box) return;
+  const matches=getPatientMatches(q);
+  if(!String(q||'').trim() || !matches.length){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='block';
+  box.innerHTML=matches.map(p=>`<button type="button" class="patient-result" onclick='selectAppointmentPatient(${JSON.stringify(String(p.id))})'><div class="patient-result-name">${esc(p.name||'Unnamed patient')}</div><div class="patient-result-meta"><span class="meta-label">ID:</span> ${esc(p.id)} &nbsp; <span class="meta-label">Phone:</span> ${esc(p.phone||p.contact||'—')}</div></button>`).join('');
+}
+function updateApptPatientMatch(){
+  const input=document.getElementById('m-patient-query'); if(!input) return;
+  const q=input.value.trim(), match=findPatientFromQuery(q), matchBox=document.getElementById('m-patient-match'), decision=document.getElementById('m-unmatched-decision');
+  const hidden=document.getElementById('m-appt-type'), selected=document.getElementById('m-selected-patient-id');
+  renderPatientResults(q);
+  if(!q){
+    matchBox.innerHTML='<span class="hint">Type a patient ID, name, or phone number.</span>';
+    if(decision) decision.style.display='none';
+    if(hidden) hidden.value='';
+    if(selected) selected.value='';
+    return;
+  }
+  if(match){
+    matchBox.innerHTML='<span class="match-ok">Existing patient found:</span><div style="margin-top:5px"><strong>'+esc(match.name||'Unnamed patient')+'</strong></div><div class="hint"><span class="meta-label">ID:</span> '+esc(match.id)+' &nbsp; <span class="meta-label">Phone:</span> '+esc(match.phone||match.contact||'—')+'</div><div class="hint" style="margin-top:4px">This appointment will be saved automatically as a follow-up.</div>';
+    if(decision) decision.style.display='none';
+    if(hidden) hidden.value='Follow-up';
+    if(selected) selected.value=match.id;
+  } else {
+    matchBox.innerHTML='<span class="match-new">No matching patient in the app.</span>';
+    if(decision) decision.style.display='block';
+    if(hidden && !hidden.value) hidden.value='';
+    if(selected) selected.value='';
+    // Always keep the ID field in sync with whatever is typed — don't stop after first fill
+    const pid=document.getElementById('m-new-pid');
+    if(pid) pid.value=q;
+    const nm=document.getElementById('m-new-name');
+    if(nm && nm.value===q) nm.value='';
+    setUnmatchedAppointmentType(hidden?.value || '');
+  }
+}
+function saveAppt(apptId){
+  const date=document.getElementById('m-date').value, time=document.getElementById('m-time').value, note=document.getElementById('m-note').value, status=document.getElementById('m-status').value;
+  if(!date||!time){ alert('Please fill date and time.'); return; }
+  let patient=findPatientFromQuery(document.getElementById('m-patient-query').value);
+  let apptType='Follow-up';
+  if(!patient){
+    apptType=document.getElementById('m-appt-type')?.value || '';
+    if(!apptType){ alert('No matching patient found. Please choose New patient or Follow-up, old patient not in app.'); return; }
+    const newId=cleanPatientQuery(document.getElementById('m-patient-query').value).trim() || (document.getElementById('m-new-pid')?.value||'').trim();
+    const newName=(document.getElementById('m-new-name')?.value||'').trim();
+    const newPhone=(document.getElementById('m-new-phone')?.value||'').trim();
+    if(!newId){ alert('Please enter the patient ID.'); return; }
+    const existing=state.patients.find(p=>String(p.id).toLowerCase()===newId.toLowerCase());
+    if(existing){
+      patient=existing;
+      apptType='Follow-up';
+      if(newName && !patient.name) patient.name=newName;
+      if(newPhone && !patient.phone) patient.phone=newPhone;
+    } else {
+      patient={id:newId,name:newName || 'Patient '+newId,age:'',phone:newPhone,notes: apptType==='Follow-up' ? 'Existing patient; first entry in this app.' : '',visits:[],createdAt:new Date().toISOString()};
+      state.patients.push(patient);
+    }
+  } else {
+    apptType='Follow-up';
+  }
+  const patientId=patient.id;
+  if(apptId){ const i=state.appointments.findIndex(a=>a.id===apptId); state.appointments[i]={...state.appointments[i],date,time,patientId,note,status,apptType}; }
+  else state.appointments.push({id:genId('A'),date,time,patientId,note,status,apptType});
+  save(); closeModal(); state.selectedDate=date; render();
+}
+function setApptStatus(id,status){ const a=state.appointments.find(x=>x.id===id); if(a){a.status=status; save(); render();} }
+function deleteAppt(id){ if(!confirm('Remove this appointment?')) return; state.appointments=state.appointments.filter(a=>a.id!==id); save(); render(); }
+function openPatientModal(pid){
+  const p=pid?state.patients.find(x=>x.id===pid):null; const visits=p?(p.visits||[]):[];
+  const visitHtml=p?'<div class="form-row"><label>Visit entries</label>'+(visits.length?visits.slice().reverse().map(v=>'<div class="visit-box"><div class="visit-head"><div class="visit-title">'+dateLabel(v.date)+' '+(v.followUpDate?'<span class="badge badge-purple">FU '+dateLabel(v.followUpDate)+'</span>':'')+'</div><button class="edit-btn" onclick="openVisitModal(\''+p.id+'\',\''+v.id+'\')"><i class="ti ti-edit"></i> Edit</button></div><div class="visit-body">'+esc(v.notes||'')+(v.prescription?'\n\nPrescription: '+esc(v.prescription):'')+'</div></div>').join(''):'<div class="empty">No visit entries yet</div>')+'<button class="btn" onclick="openVisitModal(\''+p.id+'\')"><i class="ti ti-plus"></i> Add visit entry</button></div>':'';
+  document.getElementById('modal-container').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal wide"><div class="modal-title"><i class="ti ti-'+(p?'user-edit':'user-plus')+'"></i> '+(p?'Edit patient':'New patient')+'</div><div class="form-row"><label>Patient ID</label><input id="p-id" value="'+esc(p?p.id:genId('P'))+'" '+(p?'readonly':'')+' oninput="checkPatientIdDuplicate(\''+(pid||'')+'\')"><div id="p-id-warning" class="warning" style="display:none">This patient already exists.</div></div><div class="form-row"><label>Full name *</label><input id="p-name" placeholder="Patient name" value="'+esc(p?p.name:'')+'"></div><div class="form-2col"><div class="form-row"><label>Age</label><input id="p-age" type="number" min="0" max="150" value="'+esc(p?p.age:'')+'"></div><div class="form-row"><label>Phone</label><input id="p-phone" placeholder="Phone number" value="'+esc(p?(p.phone||p.contact||''):'')+'"></div></div><div class="form-row"><label>General notes</label><textarea class="big-notes" id="p-notes" placeholder="Large Apple Pencil-friendly notes area…">'+esc(p?p.notes:'')+'</textarea></div>'+visitHtml+'<div class="modal-actions">'+(p?'<button class="btn btn-danger" onclick="deletePatient(\''+p.id+'\')"><i class="ti ti-trash"></i> Delete</button>':'')+'<button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePatient(\''+(pid||'')+'\')"><i class="ti ti-check"></i> Save</button></div></div></div>';
+}
+function checkPatientIdDuplicate(currentPid){
+  const el=document.getElementById('p-id'), warn=document.getElementById('p-id-warning');
+  if(!el || !warn) return false;
+  const value=el.value.trim().toLowerCase();
+  const exists=!!value && state.patients.some(p=>String(p.id).toLowerCase()===value && p.id!==currentPid);
+  warn.style.display=exists?'block':'none';
+  return exists;
+}
+function savePatient(pid){
+  const name=document.getElementById('p-name').value.trim();
+  if(!name){ alert('Patient name is required.'); return; }
+  if(checkPatientIdDuplicate(pid)){ alert('This patient already exists. Please use a different Patient ID or open the existing record.'); return; }
+  const data={ id:document.getElementById('p-id').value.trim()||genId('P'), name, age:document.getElementById('p-age').value, phone:document.getElementById('p-phone').value, notes:document.getElementById('p-notes').value };
+  if(pid){ const i=state.patients.findIndex(p=>p.id===pid); state.patients[i]={...state.patients[i],...data}; }
+  else state.patients.push({...data, visits:[], createdAt:new Date().toISOString()});
+  save(); closeModal(); render();
+}
+function deletePatient(pid){ if(!confirm('Delete this patient and all their appointments?')) return; state.patients=state.patients.filter(p=>p.id!==pid); state.appointments=state.appointments.filter(a=>a.patientId!==pid); save(); closeModal(); render(); }
+function openVisitModal(pid,vid){
+  const p=state.patients.find(x=>x.id===pid); if(!p) return; const v=vid?(p.visits||[]).find(x=>x.id===vid):null;
+  document.getElementById('modal-container').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal wide"><div class="modal-title"><i class="ti ti-notes"></i> Visit entry — '+esc(p.name)+'</div><div class="form-2col"><div class="form-row"><label>Visit date</label><input type="date" id="v-date" value="'+esc(v?v.date:toDateStr(new Date()))+'"></div><div class="form-row"><label>Follow-up date</label><input type="date" id="v-follow" value="'+esc(v?v.followUpDate:'')+'"></div></div><div class="form-row"><label>Consultation notes</label><textarea class="big-notes" id="v-notes" placeholder="Write with Apple Pencil here…">'+esc(v?v.notes:'')+'</textarea></div><div class="form-row"><label>Prescription</label><textarea id="v-rx" placeholder="Prescription / advice…">'+esc(v?v.prescription:'')+'</textarea></div><div class="modal-actions">'+(v?'<button class="btn btn-danger" onclick="deleteVisit(\''+pid+'\',\''+vid+'\')"><i class="ti ti-trash"></i> Delete</button>':'')+'<button class="btn" onclick="openPatientModal(\''+pid+'\')">Back</button><button class="btn btn-primary" onclick="saveVisit(\''+pid+'\',\''+(vid||'')+'\')"><i class="ti ti-check"></i> Save visit</button></div></div></div>';
+}
+function saveVisit(pid,vid){ const p=state.patients.find(x=>x.id===pid); if(!p.visits) p.visits=[]; const data={date:document.getElementById('v-date').value, followUpDate:document.getElementById('v-follow').value, notes:document.getElementById('v-notes').value, prescription:document.getElementById('v-rx').value}; if(vid){ const i=p.visits.findIndex(v=>v.id===vid); p.visits[i]={...p.visits[i],...data}; } else p.visits.push({id:genId('V'),...data}); save(); openPatientModal(pid); }
+function deleteVisit(pid,vid){ const p=state.patients.find(x=>x.id===pid); if(!confirm('Delete this visit entry?')) return; p.visits=(p.visits||[]).filter(v=>v.id!==vid); save(); openPatientModal(pid); }
+function exportCSV(){
+  const rows=[['type','appointment_type','patient_id','name','age','phone','date','time','status','notes','prescription','follow_up']];
+  state.patients.forEach(p=>{ rows.push(['patient','',p.id,p.name,p.age||'',p.phone||p.contact||'','','','',p.notes||'','','']); (p.visits||[]).forEach(v=>rows.push(['visit','',p.id,p.name,'','',v.date||'','','',v.notes||'',v.prescription||'',v.followUpDate||''])); });
+  state.appointments.forEach(a=>rows.push(['appointment',a.apptType||'Follow-up',a.patientId,patientName(a.patientId),'','',a.date,a.time,a.status,a.note||'','','']));
+  const csv=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\n'); const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const link=document.createElement('a'); link.href=url; link.download='clinicdesk_export_'+toDateStr(new Date())+'.csv'; link.click(); URL.revokeObjectURL(url);
+}
+function closeModal(){ document.getElementById('modal-container').innerHTML=''; }
+updateBadges();
+render();
+loadFromCloud();
+</script>
+</body>
+</html>
